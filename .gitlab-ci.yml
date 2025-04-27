@@ -1,0 +1,68 @@
+image: gradle:8.2-jdk17  # Gradle 8.x와 JDK 17이 포함된 Docker 이미지
+
+stages:
+  - build
+  - test
+  - package
+  - deploy
+
+# 빌드 Job
+build:
+  stage: build
+  script:
+    - echo "Using Gradle Wrapper to build the project..."
+    - chmod +x ./gradlew  # Gradle Wrapper에 실행 권한 추가
+    - ./gradlew build  # Gradle Wrapper 사용
+  artifacts:
+    paths:
+      - build/  # 빌드 결과를 저장
+    expire_in: 1h  # 아티팩트 보존 시간
+  tags:
+    - gitlab-org
+
+# 테스트 Job
+test:
+  stage: test
+  script:
+    - echo "Running tests..."
+    - chmod +x ./gradlew  # Gradle Wrapper에 실행 권한 추가
+    - ./gradlew test  # 테스트 실행
+  tags:
+    - gitlab-org
+
+# 패키징 Job
+package:
+  stage: package
+  script:
+    - echo "Packaging the project..."
+    - chmod +x ./gradlew  # Gradle Wrapper에 실행 권한 추가
+    - ls -l ./gradlew  # Gradle Wrapper 권한 확인
+    - ./gradlew assemble  # JAR 파일 생성
+  artifacts:
+    paths:
+      - build/libs/*.jar  # JAR 파일 저장
+    expire_in: 1h
+  tags:
+    - gitlab-org
+
+# 배포
+deploy:
+  stage: deploy
+  image: ubuntu:latest  # rsync가 기본적으로 설치된 이미지를 사용
+  before_script:
+    - apt-get update
+    - apt-get install -y openssh-client rsync  # rsync 설치 추가
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H 3.37.194.220 >> ~/.ssh/known_hosts
+  script:
+    - echo "Deploying the project..."
+    - chmod +x ./gradlew  # Gradle Wrapper에 실행 권한 추가
+    - rsync -avz --progress build/libs/*.jar ubuntu@3.37.194.220:/home/ubuntu/eSignify/back
+    - ssh ubuntu@3.37.194.220 "sudo systemctl restart eSignify-backend.service"  # 서비스 재시작
+  only:
+    - main  # main 브랜치에서만 실행
+  tags:
+    - gitlab-org
+
