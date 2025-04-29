@@ -47,7 +47,7 @@ dependencies {
     implementation 'com.google.apis:google-api-services-drive:v3-rev136-1.25.0'
 
     // PostgreSQL JDBC 드라이버
-    implementation 'org.postgresql:postgresql:42.7.3' // 버전 확인
+    implementation 'org.postgresql:postgresql:42.2.5' // 버전 확인
 
     // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.36' 

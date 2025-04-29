@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import com.common.CommonUtil;
 import com.common.ObjectUtil;
 import com.common.utils.JwtTokenUtil;
+import com.model.MenuRequest;
+
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 @Service
 public class MenuService {
@@ -51,6 +54,39 @@ public class MenuService {
         	mainMenuList.add(mainMenuMap);
     	}
     	
+		return mainMenuList;
+		
+	}
+	
+	public List<Map<String,Object>> createMenu(MenuRequest  requestBody){
+		
+		String tableName = "t_mainmenu";
+		
+		List<Map<String,Object>> selectResponse= comUtil.supaBaseSelect(tableName,null);
+		
+		tableName = "t_submenu";
+		
+		List<Map<String,Object>> selectSubMenu = comUtil.supaBaseSelect(tableName,null);
+		
+		List<Map<String,Object>> mainMenuList = new ArrayList<>();
+		
+		for(Map<String,Object> mainMenuMap : selectResponse) {
+			
+			List<Map<String,Object>> subMenuList = new ArrayList<>();
+			
+			for(Map<String,Object> subMenuMap : selectSubMenu) {
+				if(mainMenuMap.get("mainmenu_id").equals(subMenuMap.get("mainmenu_id"))) {
+					subMenuList.add(subMenuMap);
+				}
+			}
+			
+			
+			if(ObjectUtil.isNotEmpty(subMenuList)) {
+				mainMenuMap.put("subMenuList", subMenuList);
+			}
+			mainMenuList.add(mainMenuMap);
+		}
+		
 		return mainMenuList;
 		
 	}
