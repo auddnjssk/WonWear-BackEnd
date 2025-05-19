@@ -1,25 +1,27 @@
 package com.service;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.common.CommonUtil;
-import com.common.ObjectUtil;
+import com.common.utils.CommonUtil;
 import com.common.utils.JwtTokenUtil;
+import com.common.utils.MenuUtils;
+import com.google.gson.JsonObject;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ItemsService {
 	
-	@Autowired 
-	private CommonUtil comUtil; 
-	@Autowired 
-	private JwtTokenUtil jwtTokenUtil; 
+	private final CommonUtil comUtil; 
+	private final JwtTokenUtil jwtTokenUtil; 
+	private final MenuUtils menuUtils; 
 	
     private static final long EXPIRATION_TIME = 864_000_00;
     
@@ -63,6 +65,58 @@ public class ItemsService {
 		itemsList.get(0).put("items_size", itemSizeList);
 		
 		return itemsList;
+		
+	}
+	
+	public ResponseEntity<String> createItemDetail(Map<String, Object> requestBody){
+		
+		String mainMenuName = (String) requestBody.get("mainMenu");
+		String subMenuName = (String) requestBody.get("subMenu");
+		
+		int mainMenuId = menuUtils.getMainMenuId(mainMenuName);
+		int subMenuId  = menuUtils.getSubMenuId(subMenuName);
+		
+		
+		String tableName = "t_items";
+        JsonObject supaBaseBody = new JsonObject();
+        supaBaseBody.addProperty("item_name"	 , (String) requestBody.get("itemName"));
+        supaBaseBody.addProperty("item_price"	 , (String) requestBody.get("price"));
+        supaBaseBody.addProperty("image_number"  , (int) requestBody.get("chumbnailList"));
+        supaBaseBody.addProperty("item_salePrice", (String) requestBody.get("salePrice"));
+        supaBaseBody.addProperty("mainmenu_id"	 , mainMenuId);
+        supaBaseBody.addProperty("submenu_id"	 , subMenuId);
+        supaBaseBody.addProperty("submenu_id"	 , subMenuId);
+        
+        ResponseEntity<String> response = comUtil.supaBaseInsert(tableName,supaBaseBody);
+        
+        
+        List<Map<String, Object>> responseList = comUtil.parseJsonString(response.getBody());
+        //String itemId = (String) responseList.get(0).get("items_id");
+        System.out.println(responseList.get(0).get("items_id"));
+        int itemId = (int) responseList.get(0).get("items_id");
+        
+        List<Map<String,Object>> itemColorList = (List<Map<String,Object>>)  requestBody.get("itemColor") ;
+        List<Map<String,Object>> itemSizeList  = (List<Map<String,Object>>)  requestBody.get("itemSize") ;
+        
+        
+		tableName = "t_item_detail";
+		for(Map<String,Object> itemColorMap : itemColorList) {
+			supaBaseBody = new JsonObject();
+			supaBaseBody.addProperty("items_id",itemId);
+			supaBaseBody.addProperty("item_cond", "COLOR");
+			supaBaseBody.addProperty("item_detail",(String) itemColorMap.get("item_detail"));
+			comUtil.supaBaseInsert(tableName,supaBaseBody);
+		}
+		
+		for(Map<String,Object> itemSizeMap : itemSizeList) {
+			supaBaseBody = new JsonObject();
+			supaBaseBody.addProperty("items_id",itemId);
+			supaBaseBody.addProperty("item_cond", "SIZE");
+			supaBaseBody.addProperty("item_detail",(String) itemSizeMap.get("item_detail"));
+			comUtil.supaBaseInsert(tableName,supaBaseBody);
+		}
+
+		return response;
 		
 	}
 }

@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.common.CommonUtil;
-import com.common.MessageHttpResponse;
-import com.common.ObjectUtil;
+import com.common.utils.CommonUtil;
 import com.common.utils.Constants;
 import com.common.utils.JwtTokenUtil;
+import com.common.utils.MessageHttpResponse;
+import com.common.utils.ObjectUtil;
+import com.dto.ResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
-import com.model.ResponseDTO;
 import com.service.LoginService;
 
 import io.swagger.v3.oas.annotations.Operation;

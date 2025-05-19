@@ -7,7 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.common.CommonUtil;
+import com.common.utils.CommonUtil;
 import com.common.utils.JwtTokenUtil;
 
 @Service

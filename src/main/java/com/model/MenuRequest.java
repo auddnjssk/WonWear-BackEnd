@@ -11,4 +11,6 @@ public class MenuRequest {
     private String mainmenu_name;
     private String subYn;
     private boolean addYn;
+    private int submenu_id;
+    private String submenu_name;
 }
