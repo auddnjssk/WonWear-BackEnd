@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.common.utils.CommonUtil;
 import com.common.utils.JwtTokenUtil;
 import com.common.utils.MenuUtils;
+import com.common.utils.ObjectUtil;
 import com.google.gson.JsonObject;
 
 import lombok.RequiredArgsConstructor;
@@ -46,24 +47,25 @@ public class ItemsService {
 	
 	public List<Map<String,Object>> getItemDetail(String itemsId){
 		
-		String condition = "items_id=eq."+itemsId ;
+		String condition = "item_id=eq."+itemsId ;
 		String tableName = "t_items";
 		List<Map<String,Object>> itemsList= comUtil.supaBaseSelect(tableName,condition);
 		
 		tableName = "t_item_detail";
 		List<Map<String,Object>> itemDetailList= comUtil.supaBaseSelect(tableName,condition);
 		
-		List<Map<String, Object>> itemColorList = itemDetailList.stream()
-			    .filter(map -> "COLOR".equals(map.get("item_cond")))
-			    .collect(Collectors.toList());
-		
-		List<Map<String, Object>> itemSizeList = itemDetailList.stream()
-				.filter(map -> "SIZE".equals(map.get("item_cond")))
-				.collect(Collectors.toList());
-		
-		itemsList.get(0).put("items_color", itemColorList);
-		itemsList.get(0).put("items_size", itemSizeList);
-		
+		if(ObjectUtil.isNotEmpty(itemDetailList)){
+			List<Map<String, Object>> itemColorList = itemDetailList.stream()
+				    .filter(map -> "COLOR".equals(map.get("item_cond")))
+				    .collect(Collectors.toList());
+			
+			List<Map<String, Object>> itemSizeList = itemDetailList.stream()
+					.filter(map -> "SIZE".equals(map.get("item_cond")))
+					.collect(Collectors.toList());
+			
+			itemsList.get(0).put("items_color", itemColorList);
+			itemsList.get(0).put("items_size", itemSizeList);
+		}
 		return itemsList;
 		
 	}
@@ -92,8 +94,8 @@ public class ItemsService {
         
         List<Map<String, Object>> responseList = comUtil.parseJsonString(response.getBody());
         //String itemId = (String) responseList.get(0).get("items_id");
-        System.out.println(responseList.get(0).get("items_id"));
-        int itemId = (int) responseList.get(0).get("items_id");
+        System.out.println(responseList.get(0).get("item_id"));
+        int itemId = (int) responseList.get(0).get("item_id");
         
         List<Map<String,Object>> itemColorList = (List<Map<String,Object>>)  requestBody.get("itemColor") ;
         List<Map<String,Object>> itemSizeList  = (List<Map<String,Object>>)  requestBody.get("itemSize") ;
@@ -102,7 +104,7 @@ public class ItemsService {
 		tableName = "t_item_detail";
 		for(Map<String,Object> itemColorMap : itemColorList) {
 			supaBaseBody = new JsonObject();
-			supaBaseBody.addProperty("items_id",itemId);
+			supaBaseBody.addProperty("item_id",itemId);
 			supaBaseBody.addProperty("item_cond", "COLOR");
 			supaBaseBody.addProperty("item_detail",(String) itemColorMap.get("item_detail"));
 			comUtil.supaBaseInsert(tableName,supaBaseBody);
@@ -110,7 +112,7 @@ public class ItemsService {
 		
 		for(Map<String,Object> itemSizeMap : itemSizeList) {
 			supaBaseBody = new JsonObject();
-			supaBaseBody.addProperty("items_id",itemId);
+			supaBaseBody.addProperty("item_id",itemId);
 			supaBaseBody.addProperty("item_cond", "SIZE");
 			supaBaseBody.addProperty("item_detail",(String) itemSizeMap.get("item_detail"));
 			comUtil.supaBaseInsert(tableName,supaBaseBody);

@@ -9,9 +9,13 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -68,7 +72,6 @@ public class JwtTokenUtil {
     	
     }
     
-    
     // JWT 토큰에서 사용자 ID 추출
     public String getUserIdFromToken(String token) {
     	
@@ -89,6 +92,32 @@ public class JwtTokenUtil {
             System.out.println("토큰 검증 실패: " + e.getMessage());
             return null;
         }
+    }
+    
+    // String으로 들어온 Token Json으로 변환후 사용자 ID 추출
+    public String getUserIdFromStringToken(String authorization) throws JsonMappingException, JsonProcessingException {
+    	
+    	if(authorization.length()<12) return null;
+    	System.out.println("authorization.length()"+authorization.length());
+    	String token =  StringTk2Json(authorization.substring(7));
+    			
+    	Key key = Keys.hmacShaKeyFor(jwtSecretKey.getBytes());
+    	
+    	try {
+    		Claims claims = Jwts.parserBuilder()
+    				.setSigningKey(key)  // 비밀 키로 서명 검증
+    				.build()
+    				.parseClaimsJws(token)  // 토큰 파싱
+    				.getBody();
+    		return claims.get("userId").toString();
+    	} catch (ExpiredJwtException  e) {
+    		// JWT 파싱 중 오류가 발생한 경우 예외 처리
+    		System.out.println("유효기간 만료 : " + e.getMessage());
+    		return null;  // 오류 발생 시 null 반환
+    	}catch (Exception e) {  // 그 외 예외 처리
+    		System.out.println("토큰 검증 실패: " + e.getMessage());
+    		return null;
+    	}
     }
 
     // 유효성 검증
@@ -142,5 +171,21 @@ public class JwtTokenUtil {
         		
 		return new String(decodedBytes);
 	}
+	
+	// 스트링으로 들어온 토큰 Json으로 변환
+	public String StringTk2Json(String token ) throws JsonMappingException, JsonProcessingException {
+		
+		if(ObjectUtil.isNotEmpty(token)) {
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode node = mapper.readTree(token);
+	
+			String accessToken = node.get("value").asText();
+			return accessToken;
+		}else {
+			return null;
+		}
+	}
+	
+
     
 }

@@ -1,10 +1,11 @@
 package com.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -26,98 +27,90 @@ public class CartService {
 	
     private static final long EXPIRATION_TIME = 864_000_00;
     
-	public List<Map<String,Object>> getItems(String main,String sub){
+	public List<Map<String,Object>> getCart(String userId){
 		
-        String condition = "mainmenu_name=eq."+main ;
-    	String tableName = "t_mainmenu";
-        List<Map<String,Object>> mainMenuList= comUtil.supaBaseSelect(tableName,condition);
+    	String tableName = "t_cart";
+    	String condition = "user_id=eq."+userId ;
+    	List<Map<String,Object>> cartList = new ArrayList<Map<String,Object>>();
+        List<Map<String,Object>> cartResponse = comUtil.supaBaseSelect(tableName,condition);
         
-        condition = "submenu_name=eq."+sub ;
-        tableName = "t_submenu";
-        List<Map<String,Object>> subMenuList= comUtil.supaBaseSelect(tableName,condition);
+        for(Map<String,Object> cartMap : cartResponse) {
+        	tableName = "t_item_detail";
+        	condition = "items_detail_id=in.("+(int) cartMap.get("items_detail_id1") +","+(int) cartMap.get("items_detail_id2") + ")";
+        	List<Map<String,Object>> itemDetail= comUtil.supaBaseSelect(tableName,condition);
+        	
+        	tableName = "t_items";
+        	condition = "item_id=eq."+cartMap.get("item_id");
+        	
+        	List<Map<String,Object>> items= comUtil.supaBaseSelect(tableName,condition);
+        	
+        	Map<String,Object> itemMap = new HashMap<String,Object>();
+        	itemMap.put("itemName"		 	, items.get(0).get("item_name"));
+        	itemMap.put("itemPrice"			, items.get(0).get("item_price"));
+        	itemMap.put("itemSalePrice"		, items.get(0).get("item_salePrice"));
+        	itemMap.put("checked"			, false);
+        	
+        	itemMap.put("itemsId"		 	, cartMap.get("item_id"));
+        	itemMap.put("quantity"		 	, cartMap.get("quantity"));
+        	itemMap.put("itemsDetailId1"	, cartMap.get("items_detail_id1")); 
+        	itemMap.put("itemsDetailId2"	, cartMap.get("items_detail_id2"));
+        	
+        	StringBuffer sb = new StringBuffer();
+        	
+        	for(Map<String,Object> itemDetailMap : itemDetail) {
+        		String itemDetailType = ("COLOR").equals(itemDetailMap.get("item_cond")) ? "COLOR" : "SIZE";
+        		sb.append(itemDetailType);
+        		sb.append(" : ");
+	        	itemMap.put(itemDetailType	 , itemDetailMap.get("item_detail"));
+	        	sb.append(itemDetailMap.get("item_detail"));
+	        	sb.append(", ");
+	        	
+        	}
+        	int len = sb.length()-2;
+        	sb.delete(len , sb.length());
+        	
+        	itemMap.put("optionName" , sb);
+        	
+        	cartList.add(itemMap);
+        }
     	
-        condition = "mainmenu_id=eq."+(int) mainMenuList.get(0).get("mainmenu_id") + "&submenu_id=eq." + (int) subMenuList.get(0).get("submenu_id");
-        tableName = "t_items";
-        
-    	List<Map<String,Object>> itemsList= comUtil.supaBaseSelect(tableName,condition);
-    	
-		return itemsList;
+		return cartList;
 		
 	}
 	
-	public List<Map<String,Object>> getItemDetail(String itemsId){
+	public ResponseEntity<String> createCart(List<CartDTO> requestBody,String userId){
 		
-		String condition = "items_id=eq."+itemsId ;
-		String tableName = "t_items";
-		List<Map<String,Object>> itemsList= comUtil.supaBaseSelect(tableName,condition);
+		ResponseEntity<String> response = null;
 		
-		tableName = "t_item_detail";
-		List<Map<String,Object>> itemDetailList= comUtil.supaBaseSelect(tableName,condition);
-		
-		List<Map<String, Object>> itemColorList = itemDetailList.stream()
-			    .filter(map -> "COLOR".equals(map.get("item_cond")))
-			    .collect(Collectors.toList());
-		
-		List<Map<String, Object>> itemSizeList = itemDetailList.stream()
-				.filter(map -> "SIZE".equals(map.get("item_cond")))
-				.collect(Collectors.toList());
-		
-		itemsList.get(0).put("items_color", itemColorList);
-		itemsList.get(0).put("items_size", itemSizeList);
-		
-		return itemsList;
-		
-	}
-	
-	public ResponseEntity<String> createCart(List<CartDTO> requestBody){
-		
-//		String mainMenuName = (String) requestBody.get("mainMenu");
-//		String subMenuName = (String) requestBody.get("subMenu");
-//		
-//		int mainMenuId = menuUtils.getMainMenuId(mainMenuName);
-//		int subMenuId  = menuUtils.getSubMenuId(subMenuName);
-//		
-//		
-//		String tableName = "t_cart";
-//        JsonObject supaBaseBody = new JsonObject();
-//        supaBaseBody.addProperty("item_name"	 , (String) requestBody.get("itemName"));
-//        supaBaseBody.addProperty("item_price"	 , (String) requestBody.get("price"));
-//        supaBaseBody.addProperty("image_number"  , (int) requestBody.get("chumbnailList"));
-//        supaBaseBody.addProperty("item_salePrice", (String) requestBody.get("salePrice"));
-//        supaBaseBody.addProperty("mainmenu_id"	 , mainMenuId);
-//        supaBaseBody.addProperty("submenu_id"	 , subMenuId);
-//        supaBaseBody.addProperty("submenu_id"	 , subMenuId);
-//        
-        ResponseEntity<String> response = null;
+		String tableName = "t_cart";
+        JsonObject supaBaseBody = new JsonObject();
+        for(CartDTO requestMap : requestBody) {
+        	supaBaseBody.addProperty("user_id"	 		, userId);
+        	supaBaseBody.addProperty("items_detail_id1" , requestMap.getItems_detail_id1());
+        	supaBaseBody.addProperty("items_detail_id2" , requestMap.getItems_detail_id2());
+        	supaBaseBody.addProperty("quantity"	 		, requestMap.getQuantity());
+        	supaBaseBody.addProperty("item_id"	 		, requestMap.getItemsId());
+        	response = comUtil.supaBaseInsert(tableName,supaBaseBody);
+        }
         
-//        
-//        List<Map<String, Object>> responseList = comUtil.parseJsonString(response.getBody());
-//        //String itemId = (String) responseList.get(0).get("items_id");
-//        System.out.println(responseList.get(0).get("items_id"));
-//        int itemId = (int) responseList.get(0).get("items_id");
-//        
-//        List<Map<String,Object>> itemColorList = (List<Map<String,Object>>)  requestBody.get("itemColor") ;
-//        List<Map<String,Object>> itemSizeList  = (List<Map<String,Object>>)  requestBody.get("itemSize") ;
-//        
-//        
-//		tableName = "t_item_detail";
-//		for(Map<String,Object> itemColorMap : itemColorList) {
-//			supaBaseBody = new JsonObject();
-//			supaBaseBody.addProperty("items_id",itemId);
-//			supaBaseBody.addProperty("item_cond", "COLOR");
-//			supaBaseBody.addProperty("item_detail",(String) itemColorMap.get("item_detail"));
-//			comUtil.supaBaseInsert(tableName,supaBaseBody);
-//		}
-//		
-//		for(Map<String,Object> itemSizeMap : itemSizeList) {
-//			supaBaseBody = new JsonObject();
-//			supaBaseBody.addProperty("items_id",itemId);
-//			supaBaseBody.addProperty("item_cond", "SIZE");
-//			supaBaseBody.addProperty("item_detail",(String) itemSizeMap.get("item_detail"));
-//			comUtil.supaBaseInsert(tableName,supaBaseBody);
-//		}
-
 		return response;
+		
+	}
+	
+	public ResponseEntity<String> deleteCart(String itemId,String itemsDetailId1,String itemsDetailId2,String userId){
+		
+		ResponseEntity<String> response = null;
+
+		String tableName = "t_cart";
+        String condition = "user_id=eq." + userId + "&item_id=eq." + itemId + "&items_detail_id1=eq." + itemsDetailId1 + "&items_detail_id2=eq." + itemsDetailId2;
+
+        ResponseEntity<String> deleteSubmenuResponse = comUtil.supaBaseDelete(tableName, condition);
+        if (!deleteSubmenuResponse.getStatusCode().is2xxSuccessful()) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to delete");
+        }
+        
+		return deleteSubmenuResponse;
 		
 	}
 }

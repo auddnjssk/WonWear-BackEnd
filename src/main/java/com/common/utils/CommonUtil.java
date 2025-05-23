@@ -143,7 +143,6 @@ public class CommonUtil {
     	
     	RequestBody jsonBody = RequestBody.create(body.toString(), MediaType.get("application/json; charset=utf-8"));
     	
-    	System.out.println("\"Bearer \" + SUPABASE_KEY"+"Bearer " + SUPABASE_KEY);
     	Request request = new Request.Builder()
     			.url(url)
     			.post(jsonBody)
