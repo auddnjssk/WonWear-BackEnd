@@ -36,6 +36,15 @@ public class OrderService {
 		return orderResponse;
 		
 	}
+	public List<Map<String,Object>> getRecentOrder(String userId){
+		
+		String tableName = "t_orders";
+		String condition = "user_id=eq." + userId + "&order=order_id.desc&limit=1";
+		List<Map<String,Object>> orderResponse = comUtil.supaBaseSelect(tableName,condition);
+		
+		return orderResponse;
+		
+	}
 	
 	public ResponseEntity<String> createOrder(OrderDTO requestBody,String userId){
 		

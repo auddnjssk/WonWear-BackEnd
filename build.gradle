@@ -23,7 +23,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation  'org.springframework.boot:spring-boot-starter-test'
+    
+
     
     // JSON 처리
     implementation 'org.json:json:20210307'
@@ -47,11 +49,15 @@ dependencies {
     implementation 'com.google.apis:google-api-services-drive:v3-rev136-1.25.0'
 
     // PostgreSQL JDBC 드라이버
-    implementation 'org.postgresql:postgresql:42.2.5' // 버전 확인
+    implementation 'org.postgresql:postgresql:42.7.3'
 
+    // MyBatis
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.1'
+    
     // Lombok
-    compileOnly 'org.projectlombok:lombok:1.18.36' 
-    annotationProcessor 'org.projectlombok:lombok:1.18.22'
+	compileOnly 'org.projectlombok:lombok:1.18.36'
+	annotationProcessor 'org.projectlombok:lombok:1.18.36'
+
 
     // Swagger (API 문서화)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
@@ -63,7 +69,6 @@ dependencies {
     // 기타 유틸리티
     implementation 'org.apache.commons:commons-lang3:3.8'
     implementation 'com.konghq:unirest-java:3.7.02'
-    implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
     
     //카톡 oAuth 사용
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'

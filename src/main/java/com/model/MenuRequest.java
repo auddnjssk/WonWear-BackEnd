@@ -7,10 +7,8 @@ import lombok.Setter;
 @Setter
 public class MenuRequest {
 
-    private int mainmenu_id;
-    private String mainmenu_name;
-    private String subYn;
-    private boolean addYn;
-    private int submenu_id;
-    private String submenu_name;
+    private int cate_no;
+    private String cate_name;
+    private int parent_cate_no;
+    private int sort_order;
 }

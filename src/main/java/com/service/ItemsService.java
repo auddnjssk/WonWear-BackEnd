@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.common.CommonDao;
 import com.common.utils.CommonUtil;
 import com.common.utils.JwtTokenUtil;
 import com.common.utils.MenuUtils;
@@ -23,24 +24,24 @@ public class ItemsService {
 	private final CommonUtil comUtil; 
 	private final JwtTokenUtil jwtTokenUtil; 
 	private final MenuUtils menuUtils; 
+	private final CommonDao commonDao; 
 	
     private static final long EXPIRATION_TIME = 864_000_00;
     
-	public List<Map<String,Object>> getItems(String main,String sub){
+	public List<Map<String,Object>> getItems(String cateNo){
 		
-        String condition = "mainmenu_name=eq."+main ;
-    	String tableName = "t_mainmenu";
-        List<Map<String,Object>> mainMenuList= comUtil.supaBaseSelect(tableName,condition);
-        
-        condition = "submenu_name=eq."+sub ;
-        tableName = "t_submenu";
-        List<Map<String,Object>> subMenuList= comUtil.supaBaseSelect(tableName,condition);
+    	String tableName = "t_category";
+    	String condition = "cate_no=eq."+cateNo ;
     	
-        condition = "mainmenu_id=eq."+(int) mainMenuList.get(0).get("mainmenu_id") + "&submenu_id=eq." + (int) subMenuList.get(0).get("submenu_id");
-        tableName = "t_items";
-        
-    	List<Map<String,Object>> itemsList= comUtil.supaBaseSelect(tableName,condition);
+    	Long cateNoLong = Long.valueOf(cateNo); 
     	
+    	List<Map<String,Object>> itemsList=commonDao.selectList("ItemMapper.selectItem", cateNoLong );
+//    	
+//        List<Map<String,Object>> mainMenuList= comUtil.supaBaseSelect(tableName,condition);
+//    	
+//        tableName = "t_items";
+//    	List<Map<String,Object>> itemsList= comUtil.supaBaseSelect(tableName,condition);
+//    	
 		return itemsList;
 		
 	}

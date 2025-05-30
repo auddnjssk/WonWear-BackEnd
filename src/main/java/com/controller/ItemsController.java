@@ -36,11 +36,10 @@ public class ItemsController {
 
  	@GetMapping("/items")
  	@Operation(summary = "아이템 리스트 조회", description = "아이템 리스트 조회")
- 	public ResponseEntity<?> getItems(@RequestParam("main") String main, @RequestParam("sub") String sub,
+ 	public ResponseEntity<?> getItems(@RequestParam("cateNo") String cateNo,
  			HttpServletRequest request,HttpSession session) throws Exception {
  		
-    	List<Map<String, Object>> selectResponse = itemsService.getItems(main,sub);
-    	
+    	List<Map<String, Object>> selectResponse = itemsService.getItems(cateNo);
     	
         // 응답 DTO에 jwtToken 포함
         ResponseDTO responseDTO = new ResponseDTO.Builder()

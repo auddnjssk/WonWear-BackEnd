@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="ItemMapper">
+
+  <select id="selectItem" parameterType="Long" resultType="Map">
+	SELECT * 
+	FROM T_ITEMS 
+	WHERE CATE_NO = #{cateNo} OR CATE_NO IN (SELECT CATE_NO FROM T_CATEGORY WHERE PARENT_CATE_NO = #{cateNo})
+  </select>
+  
+</mapper>

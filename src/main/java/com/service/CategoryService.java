@@ -1,0 +1,152 @@
+package com.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import com.common.utils.CommonUtil;
+import com.common.utils.JwtTokenUtil;
+import com.common.utils.ObjectUtil;
+import com.google.gson.JsonObject;
+import com.model.MenuRequest;
+
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+
+@Service
+public class CategoryService {
+	
+	@Autowired 
+	private CommonUtil comUtil; 
+	@Autowired 
+	private JwtTokenUtil jwtTokenUtil; 
+	
+    private static final long EXPIRATION_TIME = 864_000_00;
+    
+	public List<Map<String,Object>> getCategory(){
+		
+    	String tableName = "t_category";
+    	
+    	List<Map<String,Object>> selectResponse= comUtil.supaBaseSelect(tableName,null);
+    	
+		return selectResponse;
+		
+	}
+	
+	public ResponseEntity<String> createCategory(MenuRequest requestBody){
+		
+		String tableName = "t_category";
+        JsonObject supaBaseBody = new JsonObject();
+        
+        supaBaseBody.addProperty("cate_name" 		, requestBody.getCate_name());
+        
+        if(requestBody.getParent_cate_no() != 0) {
+        	supaBaseBody.addProperty("parent_cate_no" 	, requestBody.getParent_cate_no());
+        }        
+        ResponseEntity<String> response = comUtil.supaBaseInsert(tableName,supaBaseBody);
+
+		return response;
+	}
+	
+	public ResponseEntity<String> deleteCategory(Long cate_no){
+		
+		String tableName = "t_category";
+		String condition = "cate_no=eq."+cate_no ;
+		comUtil.supaBaseDelete(tableName,condition);
+		
+		tableName = "t_mainmenu";
+		comUtil.supaBaseDelete(tableName,condition);
+		
+		tableName = "t_cart";
+		comUtil.supaBaseDelete(tableName,condition);
+		
+		tableName = "t_items";
+		ResponseEntity<String> response = comUtil.supaBaseDelete(tableName,condition);
+		
+		return response;
+	}
+	
+//	public ResponseEntity<String> createSubMenu(MenuRequest requestBody){
+//		
+//		
+//		ResponseEntity<String> response = null;
+//		String tableName = "t_mainmenu";
+//		String condition = "mainmenu_id=eq."+requestBody.getMainmenu_id() ;
+//		
+//        if(requestBody.getSubmenu_id() == 1) {
+//        	
+//        	JsonObject supaBaseBody = new JsonObject();
+//        	supaBaseBody.addProperty("subYn" , "Y");
+//        	comUtil.supaBaseUpdate(tableName,condition,supaBaseBody);
+//        	
+//        }
+//        
+//        tableName = "t_submenu";
+//        
+//    	JsonObject supaBaseBody = new JsonObject();
+//    	supaBaseBody.addProperty("mainmenu_id" , requestBody.getMainmenu_id());
+//    	supaBaseBody.addProperty("submenu_id" 	 , requestBody.getSubmenu_id());
+//    	supaBaseBody.addProperty("submenu_name"  , requestBody.getSubmenu_name());
+//    	
+//    	response = comUtil.supaBaseInsert(tableName,supaBaseBody);
+//
+//		return response;
+//	}
+//	
+//	public ResponseEntity<String> deleteSubMenu(Long mainmenuId, Long submenuId) {
+//	    String tableName;
+//	    String condition;
+//	    ResponseEntity<String> response = null;
+//
+//	    try {
+//	        // 1. subYn 업데이트 (submenuId == 1일 때만)
+//	        if (submenuId == 1) {
+//	            tableName = "t_mainmenu";
+//	            condition = "mainmenu_id=eq." + mainmenuId;
+//
+//	            JsonObject supaBaseBody = new JsonObject();
+//	            supaBaseBody.addProperty("subYn", "N");
+//
+//	            ResponseEntity<String> updateResponse = comUtil.supaBaseUpdate(tableName, condition, supaBaseBody);
+//	            if (!updateResponse.getStatusCode().is2xxSuccessful()) {
+//	                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//	                        .body("Failed to update subYn for mainmenu_id: " + mainmenuId);
+//	            }
+//	        }
+//
+//	        // 2. t_submenu 삭제
+//	        tableName = "t_submenu";
+//	        condition = "submenu_id=eq." + submenuId + "&mainmenu_id=eq." + mainmenuId;
+//
+//	        ResponseEntity<String> deleteSubmenuResponse = comUtil.supaBaseDelete(tableName, condition);
+//	        if (!deleteSubmenuResponse.getStatusCode().is2xxSuccessful()) {
+//	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//	                    .body("Failed to delete from t_submenu: submenu_id=" + submenuId);
+//	        }
+//
+//	        // 3. t_items 삭제
+//	        tableName = "t_items";
+//
+//	        ResponseEntity<String> deleteItemsResponse = comUtil.supaBaseDelete(tableName, condition);
+//	        if (!deleteItemsResponse.getStatusCode().is2xxSuccessful()) {
+//	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//	                    .body("Failed to delete from t_items: submenu_id=" + submenuId);
+//	        }
+//
+//	        response = ResponseEntity.ok("Delete successful: submenu_id=" + submenuId);
+//
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//	                .body("Exception occurred: " + e.getMessage());
+//	    }
+//
+//	    return response;
+//	}
+
+}

@@ -98,7 +98,6 @@ public class JwtTokenUtil {
     public String getUserIdFromStringToken(String authorization) throws JsonMappingException, JsonProcessingException {
     	
     	if(authorization.length()<12) return null;
-    	System.out.println("authorization.length()"+authorization.length());
     	String token =  StringTk2Json(authorization.substring(7));
     			
     	Key key = Keys.hmacShaKeyFor(jwtSecretKey.getBytes());

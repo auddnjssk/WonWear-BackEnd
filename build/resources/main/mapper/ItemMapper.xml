@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<mapper namespace="com.mapper.ItemMapper">
+
+  <select id="findById" resultType="com.wonwear.backend.model.Item">
+    SELECT * FROM items WHERE id = #{id}
+  </select>
+
+  <select id="findAll" resultType="com.wonwear.backend.model.Item">
+    SELECT * FROM items
+  </select>
+
+  <insert id="insert" parameterType="com.wonwear.backend.model.Item">
+    INSERT INTO items (name, price, description)
+    VALUES (#{name}, #{price}, #{description})
+  </insert>
+
+  <update id="update" parameterType="com.wonwear.backend.model.Item">
+    UPDATE items
+    SET name = #{name},
+        price = #{price},
+        description = #{description}
+    WHERE id = #{id}
+  </update>
+
+  <delete id="delete" parameterType="long">
+    DELETE FROM items WHERE id = #{id}
+  </delete>
+
+</mapper>

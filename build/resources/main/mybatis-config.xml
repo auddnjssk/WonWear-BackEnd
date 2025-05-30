@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
-    "http://mybatis.org/dtd/mybatis-3-config.dtd">
 
 <configuration>
     <properties>
@@ -32,14 +30,13 @@
             <transactionManager type="JDBC"/>
             <dataSource type="POOLED">
                 <!-- MySQL 드라이버 클래스의 변경으로 인해 명시 -->
-                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
-                <property name="url" value="jdbc:mysql://localhost:3306/your_database?serverTimezone=UTC"/>
-                <property name="username" value="your_username"/>
-                <property name="password" value="your_password"/>
+                <property name="driver" value="org.postgresql.Driver"/>
+                <property name="url" value="jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=disable"/>
+                <property name="username" value="postgres.ircbxvnsnfbbmkhjukzn"/>
+                <property name="password" value="723546zxcv!"/>
             </dataSource>
         </environment>
     </environments>
-
     <mappers>
         <mapper resource="mapper/loginMapper.xml"/> <!-- XML 매퍼 파일 경로 -->
     </mappers>

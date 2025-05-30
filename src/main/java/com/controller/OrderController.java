@@ -34,9 +34,9 @@ public class OrderController {
 	private final MessageHttpResponse messageHttpResponse;
 	private final JwtTokenUtil jwtTokenUtil;
 
- 	@GetMapping("/order")
- 	@Operation(summary = "장바구니 조회", description = "장바구니 조회")
- 	public ResponseEntity<?> getItems(@RequestHeader("Authorization") String authorization ) throws Exception {
+	@GetMapping("/order")
+ 	@Operation(summary = "주문 조회", description = "주문 조회")
+ 	public ResponseEntity<?> getOrder(@RequestHeader("Authorization") String authorization ) throws Exception {
  		
  		List<Map<String,Object>> response = orderService.getOrder();
  		
@@ -50,9 +50,44 @@ public class OrderController {
         return messageHttpResponse.success(responseDTO);
  			
  	}
+	
+	@GetMapping("/recentOrder")
+ 	@Operation(summary = "주문 조회", description = "주문 조회")
+ 	public ResponseEntity<?> getRecentOrder(@RequestHeader("Authorization") String authorization ) throws Exception {
+ 		
+		String userId      = null;
+		List<Map<String,Object>> response = null;
+				
+ 		if (authorization != null && authorization.startsWith("Bearer ")) {
+ 			userId = jwtTokenUtil.getUserIdFromStringToken(authorization);
+ 		}
+ 		
+ 		if(ObjectUtil.isNotEmpty(userId)) {
+ 			response = orderService.getRecentOrder(userId);
+ 	    }else {
+ 	    	ResponseDTO responseDTO = new ResponseDTO.Builder()
+	 				.setMessage("Token expired")
+	 				.setStatusCode(401)
+	 				.setResult(response)
+	 				.build();
+ 			return messageHttpResponse.success(responseDTO);
+ 	    }
+ 		
+ 		
+        // 응답 DTO에 jwtToken 포함
+        ResponseDTO responseDTO = new ResponseDTO.Builder()
+                .setMessage("Success")
+                .setStatusCode(200)
+                .setResult(response)
+                .build();
+        
+        return messageHttpResponse.success(responseDTO);
+ 			
+ 	}
+ 	
  	@PostMapping(value = "/order", produces = MediaType.APPLICATION_JSON_VALUE)
  	@Operation(summary = "주문 추가", description = "주문 추가")
- 	public ResponseEntity<?> createCart(@RequestHeader("Authorization") String authorization,
+ 	public ResponseEntity<?> createOrder(@RequestHeader("Authorization") String authorization,
  			@RequestBody OrderDTO requestBody) throws Exception {
  		
  		String accessToken = null;
