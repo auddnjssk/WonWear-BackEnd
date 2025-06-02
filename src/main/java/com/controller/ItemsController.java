@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.common.utils.CommonUtil;
 import com.common.utils.MessageHttpResponse;
+import com.dto.ItemDTO;
 import com.dto.ItemRequestDTO;
 import com.dto.ResponseDTO;
 import com.service.ItemsService;
@@ -89,6 +91,28 @@ public class ItemsController {
 	 				.setStatusCode(404)
 	 				.setResult(response)
 	 				.build();
+ 			return messageHttpResponse.success(responseDTO);
+ 		}
+ 	}
+ 	
+ 	@DeleteMapping("/items")
+ 	@Operation(summary = "아이템 삭제", description = "아이템 삭제")
+ 	public ResponseEntity<?> deleteItem(@RequestBody List<ItemDTO> requestBody) throws Exception {
+ 		
+ 		ResponseEntity<String> response = itemsService.deleteItem(requestBody);
+ 		
+ 		if(response.getStatusCode() == HttpStatus.OK) {
+ 			ResponseDTO responseDTO = new ResponseDTO.Builder()
+ 					.setMessage("Success")
+ 					.setStatusCode(200)	
+ 					.build();
+ 			return messageHttpResponse.success(responseDTO);
+ 		}else {
+ 			ResponseDTO responseDTO = new ResponseDTO.Builder()
+ 					.setMessage("failed")
+ 					.setStatusCode(404)
+ 					.setResult(response)
+ 					.build();
  			return messageHttpResponse.success(responseDTO);
  		}
  	}

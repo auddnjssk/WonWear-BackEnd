@@ -1,10 +1,13 @@
 package com.service;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +16,7 @@ import com.common.utils.CommonUtil;
 import com.common.utils.JwtTokenUtil;
 import com.common.utils.MenuUtils;
 import com.common.utils.ObjectUtil;
+import com.dto.ItemDTO;
 import com.google.gson.JsonObject;
 
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,9 @@ public class ItemsService {
 	private final MenuUtils menuUtils; 
 	private final CommonDao commonDao; 
 	
+    @Value("${imageDetailFileDir}")
+    private String imageDetailFileDir;
+    
     private static final long EXPIRATION_TIME = 864_000_00;
     
 	public List<Map<String,Object>> getItems(String cateNo){
@@ -67,17 +74,35 @@ public class ItemsService {
 			itemsList.get(0).put("items_color", itemColorList);
 			itemsList.get(0).put("items_size", itemSizeList);
 		}
+		
+		String basePath = imageDetailFileDir;
+		String itemNo = "103";
+		int index = 1;
+
+		List<String> imageList = new ArrayList<>();
+
+		while (true) {
+		    String filename = "/"+itemNo + "_" + index + ".jpg"; // 확장자에 따라 변경
+		    File file = new File(basePath + filename);
+
+		    if (file.exists()) {
+		        imageList.add(filename);
+		        index++;
+		    } else {
+		        break;
+		    }
+		}
+		
+		itemsList.get(0).put("detailImageSize", index);
+
+		
 		return itemsList;
 		
 	}
 	
 	public ResponseEntity<String> createItemDetail(Map<String, Object> requestBody){
 		
-		String mainMenuName = (String) requestBody.get("mainMenu");
-		String subMenuName = (String) requestBody.get("subMenu");
-		
-		int mainMenuId = menuUtils.getMainMenuId(mainMenuName);
-		int subMenuId  = menuUtils.getSubMenuId(subMenuName);
+		String cateNo = (String) requestBody.get("cateNo");
 		
 		
 		String tableName = "t_items";
@@ -86,16 +111,13 @@ public class ItemsService {
         supaBaseBody.addProperty("item_price"	 , (String) requestBody.get("price"));
         supaBaseBody.addProperty("image_number"  , (int) requestBody.get("chumbnailList"));
         supaBaseBody.addProperty("item_salePrice", (String) requestBody.get("salePrice"));
-        supaBaseBody.addProperty("mainmenu_id"	 , mainMenuId);
-        supaBaseBody.addProperty("submenu_id"	 , subMenuId);
-        supaBaseBody.addProperty("submenu_id"	 , subMenuId);
+        supaBaseBody.addProperty("cate_no"	 , cateNo);
         
         ResponseEntity<String> response = comUtil.supaBaseInsert(tableName,supaBaseBody);
         
         
         List<Map<String, Object>> responseList = comUtil.parseJsonString(response.getBody());
-        //String itemId = (String) responseList.get(0).get("items_id");
-        System.out.println(responseList.get(0).get("item_id"));
+        
         int itemId = (int) responseList.get(0).get("item_id");
         
         List<Map<String,Object>> itemColorList = (List<Map<String,Object>>)  requestBody.get("itemColor") ;
@@ -120,6 +142,22 @@ public class ItemsService {
 		}
 
 		return response;
+	}
+	public ResponseEntity<String> deleteItem(List<ItemDTO> requestBody){
+		
+		List<Long> itemIds = new ArrayList<>();
+		
+		for(ItemDTO itemColorMap : requestBody) {
+			itemIds.add(itemColorMap.getItem_id());
+		}
+		
+		int deletedCount = commonDao.delete("ItemMapper.deleteItem", itemIds);
+		
+	    if (deletedCount == itemIds.size()) {
+	        return ResponseEntity.ok("삭제 성공");
+	    } else {
+	        throw new IllegalStateException("일부 항목이 삭제되지 않았습니다. ");
+	    }	
 		
 	}
 }

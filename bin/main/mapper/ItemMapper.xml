@@ -9,4 +9,13 @@
 	WHERE CATE_NO = #{cateNo} OR CATE_NO IN (SELECT CATE_NO FROM T_CATEGORY WHERE PARENT_CATE_NO = #{cateNo})
   </select>
   
+  <delete id="deleteItem" parameterType="java.util.List" >
+	DELETE FROM T_ITEMS 
+	WHERE item_id IN
+	<foreach item="item_id" collection="list" open="(" separator="," close=")">
+    	#{item_id}
+  	</foreach>
+  
+  </delete>
+  
 </mapper>
